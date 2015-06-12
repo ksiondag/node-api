@@ -17,93 +17,99 @@ app.use(bodyParser.json());
 var port     = process.env.PORT || 8080; // set our port
 
 var mongoose   = require('mongoose');
-mongoose.connect('mongodb://node:node@novus.modulusmongo.net:27017/Iganiq8o'); // connect to our database
-var Bear     = require('./app/models/bear');
+mongoose.connect('mongodb://localhost/kanji'); // connect to our database
+var Kanji     = require('./app/models/kanji');
 
 // ROUTES FOR OUR API
 // =============================================================================
 
 // create our router
-var router = express.Router();
+var apiRouter = express.Router();
 
 // middleware to use for all requests
-router.use(function(req, res, next) {
+apiRouter.use(function(req, res, next) {
 	// do logging
 	console.log('Something is happening.');
 	next();
 });
 
 // test route to make sure everything is working (accessed at GET http://localhost:8080/api)
-router.get('/', function(req, res) {
+apiRouter.get('/', function(req, res) {
 	res.json({ message: 'hooray! welcome to our api!' });	
 });
 
-// on routes that end in /bears
+// on routes that end in /kanji
 // ----------------------------------------------------
-router.route('/bears')
+apiRouter.route('/kanji')
 
-	// create a bear (accessed at POST http://localhost:8080/bears)
+	// create a kanji (accessed at POST http://localhost:8080/kanji)
 	.post(function(req, res) {
 		
-		var bear = new Bear();		// create a new instance of the Bear model
-		bear.name = req.body.name;  // set the bears name (comes from the request)
+		var kanji = new Kanji();		// create a new instance of the Kanji model
+		kanji.kanji = req.body.kanji;  // set the kanji kanji (comes from the request)
+		kanji.hiragana = req.body.hiragana;  // set the kanji hiragana (comes from the request)
+		kanji.definition = req.body.definition;  // set the kanji definition (comes from the request)
+		kanji.translation = req.body.translation;  // set the kanji translation (comes from the request)
 
-		bear.save(function(err) {
+		kanji.save(function(err) {
 			if (err)
 				res.send(err);
 
-			res.json({ message: 'Bear created!' });
+			res.json({ message: 'Kanji created!' });
 		});
 
 		
 	})
 
-	// get all the bears (accessed at GET http://localhost:8080/api/bears)
+	// get all the kanji (accessed at GET http://localhost:8080/api/kanji)
 	.get(function(req, res) {
-		Bear.find(function(err, bears) {
+		Kanji.find(function(err, kanji) {
 			if (err)
 				res.send(err);
 
-			res.json(bears);
+			res.json(kanji);
 		});
 	});
 
-// on routes that end in /bears/:bear_id
+// on routes that end in /kanji/:kanji_id
 // ----------------------------------------------------
-router.route('/bears/:bear_id')
+apiRouter.route('/kanji/:kanji_id')
 
-	// get the bear with that id
+	// get the kanji with that id
 	.get(function(req, res) {
-		Bear.findById(req.params.bear_id, function(err, bear) {
+		Kanji.findById(req.params.kanji_id, function(err, kanji) {
 			if (err)
 				res.send(err);
-			res.json(bear);
+			res.json(kanji);
 		});
 	})
 
-	// update the bear with this id
+	// update the kanji with this id
 	.put(function(req, res) {
-		Bear.findById(req.params.bear_id, function(err, bear) {
+		Kanji.findById(req.params.kanji_id, function(err, kanji) {
 
 			if (err)
 				res.send(err);
 
-			bear.name = req.body.name;
-			bear.save(function(err) {
+            kanji.kanji = req.body.kanji;  // set the kanji kanji (comes from the request)
+            kanji.hiragana = req.body.hiragana;  // set the kanji hiragana (comes from the request)
+            kanji.definition = req.body.definition;  // set the kanji definition (comes from the request)
+            kanji.translation = req.body.translation;  // set the kanji translation (comes from the request)
+			kanji.save(function(err) {
 				if (err)
 					res.send(err);
 
-				res.json({ message: 'Bear updated!' });
+				res.json({ message: 'Kanji updated!' });
 			});
 
 		});
 	})
 
-	// delete the bear with this id
+	// delete the kanji with this id
 	.delete(function(req, res) {
-		Bear.remove({
-			_id: req.params.bear_id
-		}, function(err, bear) {
+		Kanji.remove({
+			_id: req.params.kanji_id
+		}, function(err, kanji) {
 			if (err)
 				res.send(err);
 
@@ -113,7 +119,12 @@ router.route('/bears/:bear_id')
 
 
 // REGISTER OUR ROUTES -------------------------------
-app.use('/api', router);
+app.use('/api', apiRouter);
+
+// ROUTES FOR OUR APP
+// =============================================================================
+var appRouter = express.Router();
+
 
 // START THE SERVER
 // =============================================================================
