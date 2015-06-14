@@ -45,15 +45,16 @@ apiRouter.route('/kanji')
 	// create a kanji (accessed at POST http://localhost:8080/kanji)
 	.post(function(req, res) {
 		
-		var kanji = new Kanji();		// create a new instance of the Kanji model
-		kanji.kanji = req.body.kanji;  // set the kanji kanji (comes from the request)
-		kanji.hiragana = req.body.hiragana;  // set the kanji hiragana (comes from the request)
-		kanji.definition = req.body.definition;  // set the kanji definition (comes from the request)
-		kanji.translation = req.body.translation;  // set the kanji translation (comes from the request)
+		var kanji = new Kanji();
+		kanji.kanji = req.body.kanji;
+		kanji.hiragana = req.body.hiragana;
+		kanji.definition = req.body.definition;
+		kanji.translation = req.body.translation;
 
 		kanji.save(function(err) {
-			if (err)
+			if (err) {
 				res.send(err);
+            }
 
 			res.json({ message: 'Kanji created!' });
 		});
@@ -64,8 +65,9 @@ apiRouter.route('/kanji')
 	// get all the kanji (accessed at GET http://localhost:8080/api/kanji)
 	.get(function(req, res) {
 		Kanji.find(function(err, kanji) {
-			if (err)
+			if (err) {
 				res.send(err);
+            }
 
 			res.json(kanji);
 		});
@@ -78,8 +80,9 @@ apiRouter.route('/kanji/:kanji_id')
 	// get the kanji with that id
 	.get(function(req, res) {
 		Kanji.findById(req.params.kanji_id, function(err, kanji) {
-			if (err)
+			if (err) {
 				res.send(err);
+            }
 			res.json(kanji);
 		});
 	})
@@ -88,16 +91,27 @@ apiRouter.route('/kanji/:kanji_id')
 	.put(function(req, res) {
 		Kanji.findById(req.params.kanji_id, function(err, kanji) {
 
-			if (err)
+			if (err) {
 				res.send(err);
+            }
 
-            kanji.kanji = req.body.kanji;  // set the kanji kanji (comes from the request)
-            kanji.hiragana = req.body.hiragana;  // set the kanji hiragana (comes from the request)
-            kanji.definition = req.body.definition;  // set the kanji definition (comes from the request)
-            kanji.translation = req.body.translation;  // set the kanji translation (comes from the request)
+            kanji.kanji = req.body.kanji || kanji.kanji;
+            kanji.hiragana = req.body.hiragana || kanji.hiragana;
+            kanji.definition = req.body.definition || kanji.definition;
+            kanji.translation = req.body.translation || kanji.translation;
+
+            if (req.body.remembered) {
+                kanji.review = new Date(Date.now() + kanji.spacing);
+                kanji.spacing *= 2;
+            } else {
+                kanji.review = new Date(Date.now());
+                kanji.spacing = 24*60*60*1000;
+            }
+
 			kanji.save(function(err) {
-				if (err)
+				if (err) {
 					res.send(err);
+                }
 
 				res.json({ message: 'Kanji updated!' });
 			});
@@ -110,23 +124,30 @@ apiRouter.route('/kanji/:kanji_id')
 		Kanji.remove({
 			_id: req.params.kanji_id
 		}, function(err, kanji) {
-			if (err)
+			if (err) {
 				res.send(err);
+            }
 
 			res.json({ message: 'Successfully deleted' });
 		});
 	});
 
 
-// REGISTER OUR ROUTES -------------------------------
-app.use('/api', apiRouter);
 
 // ROUTES FOR OUR APP
 // =============================================================================
 var appRouter = express.Router();
+
+appRouter.use(express.static("public"));
+
+
+// REGISTER OUR ROUTES -------------------------------
+app.use('/api', apiRouter);
+app.use('/', appRouter);
 
 
 // START THE SERVER
 // =============================================================================
 app.listen(port);
 console.log('Magic happens on port ' + port);
+
